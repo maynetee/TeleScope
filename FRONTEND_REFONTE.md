@@ -182,7 +182,8 @@ frontend/
 │   │   │   ├── app-shell.tsx
 │   │   │   ├── sidebar.tsx
 │   │   │   ├── header.tsx
-│   │   │   └── command-palette.tsx
+│   │   │   ├── command-palette.tsx
+│   │   │   └── theme-toggle.tsx
 │   │   ├── messages/             # Composants messages
 │   │   │   ├── message-card.tsx
 │   │   │   ├── message-feed.tsx
@@ -203,17 +204,18 @@ frontend/
 │   │   │   ├── kpi-card.tsx
 │   │   │   ├── trend-chart.tsx
 │   │   │   └── channel-ranking.tsx
+│   │   ├── exports/              # Composants exports
+│   │   │   └── export-dialog.tsx
 │   │   └── common/               # Composants génériques
+│   │       ├── empty-state.tsx
 │   │       ├── language-badge.tsx
-│   │       ├── source-link.tsx
-│   │       ├── timestamp.tsx
-│   │       └── empty-state.tsx
+│   │       └── timestamp.tsx
 │   │
 │   ├── features/                 # Feature-based modules
 │   │   ├── auth/
-│   │   │   ├── components/
-│   │   │   ├── hooks/
-│   │   │   └── stores/
+│   │   │   ├── login-page.tsx
+│   │   │   ├── register-page.tsx
+│   │   │   └── auth-guard.tsx
 │   │   ├── dashboard/
 │   │   ├── feed/
 │   │   ├── search/
@@ -224,16 +226,13 @@ frontend/
 │   │   └── exports/
 │   │
 │   ├── hooks/                    # Hooks globaux
-│   │   ├── use-keyboard-shortcuts.ts
 │   │   ├── use-command-palette.ts
-│   │   ├── use-infinite-scroll.ts
+│   │   ├── use-keyboard-shortcuts.ts
 │   │   └── use-theme.ts
 │   │
 │   ├── lib/                      # Utilitaires
 │   │   ├── api/                  # Client API typé
-│   │   │   ├── client.ts
-│   │   │   ├── endpoints.ts
-│   │   │   └── types.ts
+│   │   │   └── client.ts          # Types et endpoints regroupés
 │   │   ├── utils.ts              # Helpers généraux
 │   │   └── cn.ts                 # ClassNames helper
 │   │
@@ -801,6 +800,7 @@ const routes = [
 - [x] `features/digests/` - DigestsPage, DigestViewer
 - [x] `features/exports/` - ExportDialog, CSV/PDF generators
 - [x] `components/layout/command-palette.tsx`
+- [x] `hooks/use-command-palette.ts`
 - [x] `hooks/use-keyboard-shortcuts.ts`
 
 ### 6.5 Phase 4 : Polish
@@ -875,12 +875,12 @@ shadcn/ui setup
 
 ### 8.2 Critères de Succès Techniques
 
-- [x] Bundle size < 500KB gzipped
-- [x] Lighthouse Performance > 90
-- [x] Lighthouse Accessibility > 90
-- [x] Couverture tests > 70%
-- [x] Zéro erreur TypeScript
-- [x] Zéro warning ESLint
+- [ ] Bundle size < 500KB gzipped (a verifier sur build)
+- [ ] Lighthouse Performance > 90 (a verifier sur audit)
+- [ ] Lighthouse Accessibility > 90 (a verifier sur audit)
+- [ ] Couverture tests > 70% (a verifier sur CI)
+- [ ] Zero erreur TypeScript (a verifier sur build)
+- [ ] Zero warning ESLint (a verifier sur lint)
 
 ---
 
