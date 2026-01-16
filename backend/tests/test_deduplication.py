@@ -19,30 +19,6 @@ if "sentence_transformers" not in sys.modules:
     sentence_stub.SentenceTransformer = _DummyEmbedder
     sys.modules["sentence_transformers"] = sentence_stub
 
-if "pinecone" not in sys.modules:
-    pinecone_stub = types.ModuleType("pinecone")
-
-    def _noop(*args, **kwargs):
-        return None
-
-    pinecone_stub.init = _noop
-    pinecone_stub.list_indexes = lambda: []
-    pinecone_stub.create_index = _noop
-    pinecone_stub.describe_index = lambda name: {"status": {"ready": True}}
-
-    class _DummyIndex:
-        def __init__(self, *args, **kwargs) -> None:
-            pass
-
-        def upsert(self, *args, **kwargs) -> None:
-            return None
-
-        def query(self, *args, **kwargs):
-            return {"matches": []}
-
-    pinecone_stub.Index = _DummyIndex
-    sys.modules["pinecone"] = pinecone_stub
-
 from app.models.channel import Channel  # noqa: F401
 from app.models.message import Message
 from app.services.deduplicator import DeduplicationService

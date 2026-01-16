@@ -54,6 +54,7 @@ logs/
 # ----- Données locales -----
 data/*.db
 data/*.sqlite
+backend/data/
 *.backup
 
 # ----- Telegram sessions (CRITIQUE - NE JAMAIS COMMITER) -----

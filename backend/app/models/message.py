@@ -33,7 +33,7 @@ class Message(Base):
     originality_score = Column(SmallInteger, default=100)  # 0-100
     duplicate_group_id = Column(UUID(as_uuid=True), nullable=True, index=True)
 
-    # Pinecone vector reference
+    # Vector store reference
     embedding_id = Column(String(255), nullable=True)
 
     # Named entities extracted (JSON - works with both SQLite and PostgreSQL)
