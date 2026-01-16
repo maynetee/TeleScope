@@ -18,9 +18,12 @@ import { Label } from '@/components/ui/label'
 
 interface AddChannelDialogProps {
   onSubmit: (username: string) => Promise<unknown>
+  open?: boolean
+  onOpenChange?: (open: boolean) => void
+  showTrigger?: boolean
 }
 
-export function AddChannelDialog({ onSubmit }: AddChannelDialogProps) {
+export function AddChannelDialog({ onSubmit, open: controlledOpen, onOpenChange, showTrigger = true }: AddChannelDialogProps) {
   const { t } = useTranslation()
   const schema = z.object({
     username: z.string().min(2, t('channels.validation')),
@@ -28,7 +31,12 @@ export function AddChannelDialog({ onSubmit }: AddChannelDialogProps) {
 
   type FormValues = z.infer<typeof schema>
 
-  const [open, setOpen] = useState(false)
+  const [internalOpen, setInternalOpen] = useState(false)
+
+  // Support both controlled and uncontrolled modes
+  const isControlled = controlledOpen !== undefined
+  const open = isControlled ? controlledOpen : internalOpen
+  const setOpen = isControlled ? (onOpenChange ?? (() => {})) : setInternalOpen
   const {
     register,
     handleSubmit,
@@ -44,9 +52,11 @@ export function AddChannelDialog({ onSubmit }: AddChannelDialogProps) {
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>
-        <Button>{t('channels.add')}</Button>
-      </DialogTrigger>
+      {showTrigger && (
+        <DialogTrigger asChild>
+          <Button>{t('channels.add')}</Button>
+        </DialogTrigger>
+      )}
       <DialogContent>
         <DialogHeader>
           <DialogTitle>{t('channels.addTitle')}</DialogTitle>

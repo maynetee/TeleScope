@@ -1,5 +1,6 @@
 import { useQuery } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
+import { useNavigate } from 'react-router-dom'
 
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -7,28 +8,55 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { KpiCard } from '@/components/stats/kpi-card'
 import { TrendChart } from '@/components/stats/trend-chart'
 import { ChannelRanking } from '@/components/stats/channel-ranking'
-import { statsApi } from '@/lib/api/client'
+import { EmptyState } from '@/components/common/empty-state'
+import { statsApi, channelsApi } from '@/lib/api/client'
 
 export function DashboardPage() {
   const { t } = useTranslation()
+  const navigate = useNavigate()
+
+  const channelsQuery = useQuery({
+    queryKey: ['channels'],
+    queryFn: async () => (await channelsApi.list()).data,
+  })
+
   const overviewQuery = useQuery({
     queryKey: ['stats-overview'],
     queryFn: async () => (await statsApi.overview()).data,
+    enabled: (channelsQuery.data?.length ?? 0) > 0,
   })
 
   const messagesByDayQuery = useQuery({
     queryKey: ['stats-messages-by-day'],
     queryFn: async () => (await statsApi.messagesByDay(7)).data,
+    enabled: (channelsQuery.data?.length ?? 0) > 0,
   })
 
   const messagesByChannelQuery = useQuery({
     queryKey: ['stats-messages-by-channel'],
     queryFn: async () => (await statsApi.messagesByChannel(5)).data,
+    enabled: (channelsQuery.data?.length ?? 0) > 0,
   })
 
+  const channels = channelsQuery.data ?? []
   const overview = overviewQuery.data
+  const hasNoChannels = !channelsQuery.isLoading && channels.length === 0
 
   const digestItems = t('dashboard.digestItems', { returnObjects: true }) as string[]
+
+  // Show empty state when no channels are configured
+  if (hasNoChannels) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-[60vh]">
+        <EmptyState
+          title={t('dashboard.emptyTitle')}
+          description={t('dashboard.emptyDescription')}
+          actionLabel={t('dashboard.emptyAction')}
+          onAction={() => navigate('/channels?add=true')}
+        />
+      </div>
+    )
+  }
 
   return (
     <div className="flex flex-col gap-8">

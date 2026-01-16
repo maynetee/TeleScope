@@ -87,6 +87,9 @@ const resources = {
         activityTitle: '7-day activity',
         activitySubtitle: 'Message volume collected.',
         topChannels: 'Top channels',
+        emptyTitle: 'No sources configured',
+        emptyDescription: 'Add Telegram channels to start collecting and analyzing intelligence signals.',
+        emptyAction: 'Add a channel',
       },
       feed: {
         title: 'Priority signals',
@@ -303,6 +306,9 @@ const resources = {
         activityTitle: 'Activite sur 7 jours',
         activitySubtitle: 'Volume de messages collectes.',
         topChannels: 'Top canaux',
+        emptyTitle: 'Aucune source configuree',
+        emptyDescription: 'Ajoutez des canaux Telegram pour commencer a collecter et analyser les signaux de renseignement.',
+        emptyAction: 'Ajouter un canal',
       },
       feed: {
         title: 'Signaux prioritaires',
