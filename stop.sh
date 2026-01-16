@@ -54,6 +54,7 @@ kill_by_pattern() {
 # Stop backend/frontend processes (best-effort)
 kill_by_port 8000
 kill_by_port 5173
+kill_by_port 6333
 kill_by_port 6379
 kill_by_pattern "uvicorn app.main:app"
 kill_by_pattern "npm run dev"

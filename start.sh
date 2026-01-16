@@ -5,6 +5,7 @@
 # Optional env vars:
 #   MIGRATE_SQLITE=1  -> run SQLite -> PostgreSQL migration after Alembic upgrade
 #   SKIP_POSTGRES=1   -> skip Docker PostgreSQL startup (use external DB)
+#   SKIP_DOCKER=1     -> skip all Docker Compose services (use external services)
 
 set -e
 
@@ -53,22 +54,29 @@ fi
 # Create data directory
 mkdir -p "$ROOT_DIR/data"
 
-# Start PostgreSQL via Docker (unless SQLite or skipped)
+# Start Docker services (PostgreSQL unless SQLite or skipped; Qdrant/Redis by default)
 USE_SQLITE_VALUE=$(grep -E '^USE_SQLITE=' "$ROOT_DIR/.env" | tail -n 1 | cut -d'=' -f2 | tr -d '\r' | tr '[:upper:]' '[:lower:]')
-if [ "$SKIP_POSTGRES" != "1" ] && [ "$USE_SQLITE_VALUE" != "true" ]; then
+if [ "$SKIP_DOCKER" != "1" ]; then
+    SERVICES=("qdrant" "redis")
+    if [ "$SKIP_POSTGRES" != "1" ] && [ "$USE_SQLITE_VALUE" != "true" ]; then
+        SERVICES+=("postgres")
+    fi
+
     if command -v docker &> /dev/null; then
         if docker compose version &> /dev/null; then
             COMPOSE_CMD="docker compose"
         elif command -v docker-compose &> /dev/null; then
             COMPOSE_CMD="docker-compose"
         else
-            echo "Docker Compose is required to start PostgreSQL. Install docker-compose or use Docker Desktop."
+            echo "Docker Compose is required to start services. Install docker-compose or use Docker Desktop."
             exit 1
         fi
-        echo -e "${BLUE}Starting PostgreSQL via Docker...${NC}"
-        $COMPOSE_CMD up -d
+        if [ "${#SERVICES[@]}" -gt 0 ]; then
+            echo -e "${BLUE}Starting Docker services: ${SERVICES[*]}...${NC}"
+            $COMPOSE_CMD up -d "${SERVICES[@]}"
+        fi
     else
-        echo "Docker is required to start PostgreSQL. Install Docker or set USE_SQLITE=true."
+        echo "Docker is required to start services. Install Docker or set SKIP_DOCKER=1."
         exit 1
     fi
 fi
