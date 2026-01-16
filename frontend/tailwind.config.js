@@ -6,7 +6,12 @@ export default {
     extend: {
       colors: {
         background: 'hsl(var(--background))',
+        'background-subtle': 'hsl(var(--background-subtle))',
+        'background-muted': 'hsl(var(--background-muted))',
         foreground: 'hsl(var(--foreground))',
+        'foreground-muted': 'hsl(var(--foreground-muted))',
+        card: 'hsl(var(--card))',
+        'card-foreground': 'hsl(var(--card-foreground))',
         muted: 'hsl(var(--muted))',
         border: 'hsl(var(--border))',
         primary: 'hsl(var(--primary))',
@@ -17,6 +22,8 @@ export default {
         info: 'hsl(var(--info))',
         duplicate: 'hsl(var(--duplicate))',
         translated: 'hsl(var(--translated))',
+        'sidebar-bg': 'hsl(var(--sidebar-bg))',
+        'sidebar-border': 'hsl(var(--sidebar-border))',
       },
       fontFamily: {
         sans: ['var(--font-sans)'],
