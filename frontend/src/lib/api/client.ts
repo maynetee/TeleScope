@@ -31,6 +31,7 @@ export interface Channel {
   description: string | null
   detected_language?: string | null
   subscriber_count: number
+  tags?: string[] | null
   created_at: string
   last_fetched_at: string | null
 }
@@ -69,6 +70,7 @@ export interface MessageListResponse {
 export interface Summary {
   id: string
   digest_type: string
+  collection_id?: string | null
   title?: string
   content: string
   content_html?: string | null
@@ -97,9 +99,52 @@ export interface Collection {
   user_id: string
   name: string
   description?: string | null
+  color?: string | null
+  icon?: string | null
+  is_default?: boolean
+  is_global?: boolean
+  parent_id?: string | null
+  auto_assign_languages?: string[] | null
+  auto_assign_keywords?: string[] | null
+  auto_assign_tags?: string[] | null
   channel_ids: string[]
   created_at: string
   updated_at?: string | null
+}
+
+export interface CollectionStats {
+  message_count: number
+  message_count_24h: number
+  message_count_7d: number
+  channel_count: number
+  top_channels: { channel_id: string; channel_title: string; count: number }[]
+  activity_trend: { date: string; count: number }[]
+  duplicate_rate: number
+  languages: Record<string, number>
+}
+
+export interface Alert {
+  id: string
+  collection_id: string
+  user_id: string
+  name: string
+  keywords?: string[] | null
+  entities?: string[] | null
+  min_threshold: number
+  frequency: string
+  notification_channels?: string[] | null
+  is_active: boolean
+  last_triggered_at?: string | null
+  created_at: string
+  updated_at?: string | null
+}
+
+export interface AlertTrigger {
+  id: string
+  alert_id: string
+  triggered_at: string
+  message_ids: string[]
+  summary?: string | null
 }
 
 export interface StatsOverview {
@@ -197,7 +242,7 @@ export const messagesApi = {
 export const summariesApi = {
   getDaily: () => api.get<Summary>('/api/summaries/daily'),
   get: (id: string) => api.get<Summary>(`/api/summaries/${id}`),
-  list: (params?: { digest_type?: string; limit?: number; offset?: number }) =>
+  list: (params?: { digest_type?: string; limit?: number; offset?: number; collection_id?: string }) =>
     api.get<SummaryListResponse>('/api/summaries', { params }),
   generate: (filters?: Record<string, string[]>) =>
     api.post<Summary>('/api/summaries/generate', { digest_type: 'daily', filters }),
@@ -208,13 +253,77 @@ export const summariesApi = {
 
 export const collectionsApi = {
   list: () => api.get<Collection[]>('/api/collections'),
-  create: (payload: { name: string; description?: string; channel_ids?: string[] }) =>
+  create: (payload: {
+    name: string
+    description?: string
+    channel_ids?: string[]
+    color?: string
+    icon?: string
+    is_default?: boolean
+    is_global?: boolean
+    parent_id?: string | null
+    auto_assign_languages?: string[]
+    auto_assign_keywords?: string[]
+    auto_assign_tags?: string[]
+  }) =>
     api.post<Collection>('/api/collections', payload),
   update: (
     id: string,
-    payload: { name?: string; description?: string; channel_ids?: string[] },
+    payload: {
+      name?: string
+      description?: string
+      channel_ids?: string[]
+      color?: string
+      icon?: string
+      is_default?: boolean
+      is_global?: boolean
+      parent_id?: string | null
+      auto_assign_languages?: string[]
+      auto_assign_keywords?: string[]
+      auto_assign_tags?: string[]
+    },
   ) => api.put<Collection>(`/api/collections/${id}`, payload),
   delete: (id: string) => api.delete(`/api/collections/${id}`),
+  stats: (id: string) => api.get<CollectionStats>(`/api/collections/${id}/stats`),
+  overview: () => api.get<{ collections: { id: string; name: string; message_count_7d: number; channel_count: number; created_at: string }[] }>(
+    '/api/collections/overview',
+  ),
+  compare: (collection_ids: string[]) =>
+    api.get<{ comparisons: { collection_id: string; name: string; message_count_7d: number; channel_count: number; duplicate_rate: number }[] }>(
+      '/api/collections/compare',
+      { params: buildParams({ collection_ids }) },
+    ),
+  digests: (id: string, params?: { limit?: number; offset?: number }) =>
+    api.get<SummaryListResponse>(`/api/collections/${id}/digests`, { params }),
+  generateDigest: (id: string) => api.post<Summary>(`/api/collections/${id}/digest`),
+  exportMessages: (id: string, params?: { format?: string; start_date?: string; end_date?: string; limit?: number }) =>
+    api.post(`/api/collections/${id}/export`, null, { params: params ? buildParams(params) : undefined, responseType: params?.format === 'pdf' ? 'blob' : undefined }),
+  shares: (id: string) => api.get(`/api/collections/${id}/shares`),
+  addShare: (id: string, payload: { user_id: string; permission: string }) =>
+    api.post(`/api/collections/${id}/shares`, payload),
+  removeShare: (id: string, userId: string) =>
+    api.delete(`/api/collections/${id}/shares/${userId}`),
+}
+
+export const alertsApi = {
+  list: (params?: { collection_id?: string }) => api.get<Alert[]>('/api/alerts', { params }),
+  create: (payload: {
+    name: string
+    collection_id: string
+    keywords?: string[]
+    entities?: string[]
+    min_threshold?: number
+    frequency?: string
+    notification_channels?: string[]
+    is_active?: boolean
+  }) => api.post<Alert>('/api/alerts', payload),
+  update: (id: string, payload: Partial<Omit<Alert, 'id' | 'user_id' | 'created_at' | 'updated_at'>>) =>
+    api.put<Alert>(`/api/alerts/${id}`, payload),
+  delete: (id: string) => api.delete(`/api/alerts/${id}`),
+  triggers: (id: string, params?: { limit?: number }) =>
+    api.get<AlertTrigger[]>(`/api/alerts/${id}/triggers`, { params }),
+  recentTriggers: (params?: { limit?: number }) =>
+    api.get<AlertTrigger[]>('/api/alerts/triggers/recent', { params }),
 }
 
 export const statsApi = {

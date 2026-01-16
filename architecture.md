@@ -1,7 +1,7 @@
 # TeleScope - Architecture Technique
 
 **Version:** 1.0
-**Dernière mise à jour:** 2026-01-16 20:10
+**Dernière mise à jour:** 2026-01-16 23:46
 
 ---
 
@@ -57,6 +57,9 @@
 | Cache | Redis (traductions persistantes) | `backend/app/services/cache.py` | **Nouveau** |
 | Déduplication | Qdrant (cosine) | `backend/app/services/deduplicator.py` | **Nouveau** |
 | Résumés | Service interne | `backend/app/services/summarizer.py` | - |
+| Collections | N:M + stats + export + digest | `backend/app/api/collections.py` | **Ajouté** |
+| Alertes | Modèle + API + job scheduler | `backend/app/api/alerts.py` | **Ajouté** |
+| Partage collections | `collection_shares` | `backend/app/api/collections.py` | **Ajouté** |
 | API REST | FastAPI + **Auth obligatoire** | `backend/app/main.py` | **Amélioré** |
 | Frontend | React 18 + Vite 5 + Tailwind | `frontend/` | **Refonte UI + i18n** |
 
@@ -72,20 +75,30 @@ backend/
 ├── app/
 │   ├── api/
 │   │   ├── auth.py             # [NOUVEAU] Endpoints authentification
+│   │   ├── alerts.py           # Endpoints alertes collections
+│   │   ├── audit_logs.py       # Endpoints audit RGPD
 │   │   ├── channels.py         # Endpoints canaux (protégé JWT)
+│   │   ├── collections.py      # Endpoints collections + stats/export/digests
 │   │   ├── messages.py         # Endpoints messages + search/export (protégé JWT)
-│   │   └── summaries.py        # Endpoints résumés + listing (protégé JWT)
+│   │   ├── summaries.py        # Endpoints résumés + listing (protégé JWT)
+│   │   └── stats.py            # Endpoints KPIs + exports stats
 │   ├── auth/                   # [NOUVEAU] Package authentification
 │   │   ├── __init__.py
 │   │   ├── users.py            # Configuration FastAPI-Users
 │   │   └── rbac.py             # Permissions par rôle
 │   ├── models/
+│   │   ├── alert.py            # Modèle Alert + AlertTrigger
 │   │   ├── channel.py          # Modèle Channel (UUID, BigInteger)
+│   │   ├── collection.py       # Modèle Collection + table pivot
+│   │   ├── collection_share.py # Partage collections
 │   │   ├── message.py          # Modèle Message (UUID, JSONB)
 │   │   ├── summary.py          # Modèle Summary (UUID, JSONB)
 │   │   └── user.py             # [NOUVEAU] Modèle User (RBAC)
 │   ├── schemas/
+│   │   ├── alert.py            # Schémas alertes
 │   │   ├── channel.py          # Schémas Pydantic (UUID)
+│   │   ├── collection.py       # Schémas collections + stats
+│   │   ├── collection_share.py # Schémas partage
 │   │   ├── message.py          # Schémas Pydantic (UUID)
 │   │   ├── summary.py          # Schémas Pydantic (UUID)
 │   │   └── user.py             # [NOUVEAU] Schémas User
@@ -103,7 +116,9 @@ backend/
 │   │   └── retry.py            # Décorateur @telegram_retry
 │   ├── jobs/
 │   │   ├── collect_messages.py    # Job de collecte
-│   │   └── generate_summaries.py  # Job de résumés
+│   │   ├── generate_summaries.py  # Job de résumés
+│   │   ├── alerts.py              # Job de détection alertes
+│   │   └── purge_audit_logs.py    # Purge audit logs
 │   ├── config.py               # Configuration (PostgreSQL, JWT, Telegram)
 │   ├── database.py             # Connexion PostgreSQL/SQLite
 │   └── main.py                 # Application FastAPI + auth router

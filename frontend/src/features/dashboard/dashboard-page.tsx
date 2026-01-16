@@ -1,6 +1,7 @@
 import { useQuery } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
 import { useNavigate } from 'react-router-dom'
+import { useMemo, useState } from 'react'
 
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -9,37 +10,49 @@ import { KpiCard } from '@/components/stats/kpi-card'
 import { TrendChart } from '@/components/stats/trend-chart'
 import { ChannelRanking } from '@/components/stats/channel-ranking'
 import { EmptyState } from '@/components/common/empty-state'
-import { statsApi, channelsApi } from '@/lib/api/client'
+import { statsApi, channelsApi, collectionsApi } from '@/lib/api/client'
 
 export function DashboardPage() {
   const { t } = useTranslation()
   const navigate = useNavigate()
+  const [selectedCollection, setSelectedCollection] = useState<string>('all')
 
   const channelsQuery = useQuery({
     queryKey: ['channels'],
     queryFn: async () => (await channelsApi.list()).data,
   })
+  const collectionsQuery = useQuery({
+    queryKey: ['collections'],
+    queryFn: async () => (await collectionsApi.list()).data,
+  })
 
   const overviewQuery = useQuery({
     queryKey: ['stats-overview'],
     queryFn: async () => (await statsApi.overview()).data,
-    enabled: (channelsQuery.data?.length ?? 0) > 0,
+    enabled: (channelsQuery.data?.length ?? 0) > 0 && selectedCollection === 'all',
   })
 
   const messagesByDayQuery = useQuery({
     queryKey: ['stats-messages-by-day'],
     queryFn: async () => (await statsApi.messagesByDay(7)).data,
-    enabled: (channelsQuery.data?.length ?? 0) > 0,
+    enabled: (channelsQuery.data?.length ?? 0) > 0 && selectedCollection === 'all',
   })
 
   const messagesByChannelQuery = useQuery({
     queryKey: ['stats-messages-by-channel'],
     queryFn: async () => (await statsApi.messagesByChannel(5)).data,
-    enabled: (channelsQuery.data?.length ?? 0) > 0,
+    enabled: (channelsQuery.data?.length ?? 0) > 0 && selectedCollection === 'all',
+  })
+
+  const collectionStatsQuery = useQuery({
+    queryKey: ['collections', selectedCollection, 'stats'],
+    queryFn: async () => (await collectionsApi.stats(selectedCollection)).data,
+    enabled: selectedCollection !== 'all',
   })
 
   const channels = channelsQuery.data ?? []
   const overview = overviewQuery.data
+  const collectionStats = collectionStatsQuery.data
   const hasNoChannels = !channelsQuery.isLoading && channels.length === 0
 
   const digestItems = t('dashboard.digestItems', { returnObjects: true }) as string[]
@@ -58,24 +71,68 @@ export function DashboardPage() {
     )
   }
 
+  const kpiMessages = selectedCollection === 'all'
+    ? overview?.messages_last_24h ?? 0
+    : collectionStats?.message_count_24h ?? 0
+  const kpiDuplicates = selectedCollection === 'all'
+    ? Math.round(
+        ((overview?.duplicates_last_24h ?? 0) / ((overview?.messages_last_24h ?? 0) || 1)) * 100,
+      )
+    : Math.round((collectionStats?.duplicate_rate ?? 0) * 100)
+  const kpiChannels = selectedCollection === 'all'
+    ? overview?.active_channels ?? 0
+    : collectionStats?.channel_count ?? 0
+
+  const trendData = selectedCollection === 'all'
+    ? messagesByDayQuery.data ?? []
+    : collectionStats?.activity_trend ?? []
+
+  const topChannels = selectedCollection === 'all'
+    ? messagesByChannelQuery.data ?? []
+    : (collectionStats?.top_channels ?? [])
+
+  const collectionOptions = useMemo(
+    () => collectionsQuery.data ?? [],
+    [collectionsQuery.data],
+  )
+
   return (
     <div className="flex flex-col gap-8">
+      <div className="flex flex-wrap items-center gap-2">
+        <Button
+          variant={selectedCollection === 'all' ? 'default' : 'outline'}
+          size="sm"
+          onClick={() => setSelectedCollection('all')}
+        >
+          {t('collections.allCollections')}
+        </Button>
+        {collectionOptions.map((collection) => (
+          <Button
+            key={collection.id}
+            variant={selectedCollection === collection.id ? 'secondary' : 'outline'}
+            size="sm"
+            onClick={() => setSelectedCollection(collection.id)}
+          >
+            {collection.name}
+          </Button>
+        ))}
+      </div>
       <section className="grid gap-4 md:grid-cols-3">
         <KpiCard
           label={t('dashboard.kpiMessages')}
-          value={overview ? overview.messages_last_24h.toLocaleString() : '--'}
+          value={Number.isFinite(kpiMessages) ? kpiMessages.toLocaleString() : '--'}
           delta="+23%"
           trend="up"
         />
         <KpiCard
           label={t('dashboard.kpiDuplicates')}
-          value={overview ? `${Math.round((overview.duplicates_last_24h / (overview.messages_last_24h || 1)) * 100)}%` : '--'}
+          value={Number.isFinite(kpiDuplicates) ? `${kpiDuplicates}%` : '--'}
           delta="-4%"
           trend="down"
         />
         <KpiCard
           label={t('dashboard.kpiChannels')}
-          value={overview ? overview.active_channels.toLocaleString() : '--'}
+          value={Number.isFinite(kpiChannels) ? kpiChannels.toLocaleString() : '--'}
           delta="+11%"
           trend="up"
         />
@@ -135,10 +192,10 @@ export function DashboardPage() {
             <p className="text-sm text-foreground/60">{t('dashboard.activitySubtitle')}</p>
           </CardHeader>
           <CardContent>
-            <TrendChart data={messagesByDayQuery.data ?? []} />
+            <TrendChart data={trendData} />
           </CardContent>
         </Card>
-        <ChannelRanking data={messagesByChannelQuery.data ?? []} />
+        <ChannelRanking data={topChannels} />
       </section>
     </div>
   )

@@ -14,6 +14,7 @@ class Summary(Base):
 
     # Optional user association (for personalized digests)
     user_id = Column(UUID(as_uuid=True), ForeignKey("users.id", ondelete="SET NULL"), nullable=True, index=True)
+    collection_id = Column(UUID(as_uuid=True), ForeignKey("collections.id", ondelete="SET NULL"), nullable=True, index=True)
 
     # Summary metadata
     digest_type = Column(String(50), index=True, default="daily")  # daily, weekly, custom

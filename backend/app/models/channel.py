@@ -23,6 +23,7 @@ class Channel(Base):
     detected_language = Column(String(10), nullable=True)
     subscriber_count = Column(BigInteger, default=0)
     is_active = Column(Boolean, default=True, index=True)
+    tags = Column(JSON, default=list, nullable=True)
 
     # Fetch configuration (JSON - works with both SQLite and PostgreSQL)
     fetch_config = Column(

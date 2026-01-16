@@ -6,10 +6,11 @@ import logging
 
 from app.config import get_settings
 from app.database import init_db
-from app.api import channels, messages, summaries, auth, collections, audit_logs, stats
+from app.api import channels, messages, summaries, auth, collections, audit_logs, stats, alerts
 from app.jobs.collect_messages import collect_messages_job
 from app.jobs.generate_summaries import generate_summaries_job
 from app.jobs.purge_audit_logs import purge_audit_logs_job
+from app.jobs.alerts import evaluate_alerts_job
 
 # Configure logging
 logging.basicConfig(
@@ -40,6 +41,8 @@ async def lifespan(app: FastAPI):
         # Purge audit logs based on retention settings
         purge_hour, purge_minute = map(int, settings.audit_log_purge_time.split(':'))
         scheduler.add_job(purge_audit_logs_job, 'cron', hour=purge_hour, minute=purge_minute, id='purge_audit_logs')
+
+        scheduler.add_job(evaluate_alerts_job, 'interval', minutes=10, id='alert_monitor')
 
         scheduler.start()
         print("Background jobs scheduled (collecting every 2 minutes)")
@@ -76,6 +79,7 @@ app.include_router(summaries.router, prefix="/api/summaries", tags=["summaries"]
 app.include_router(collections.router, prefix="/api/collections", tags=["collections"])
 app.include_router(audit_logs.router, prefix="/api/audit-logs", tags=["audit-logs"])
 app.include_router(stats.router, prefix="/api/stats", tags=["stats"])
+app.include_router(alerts.router, prefix="/api/alerts", tags=["alerts"])
 
 
 @app.get("/")

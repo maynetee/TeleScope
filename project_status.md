@@ -1,6 +1,6 @@
 # TeleScope - État du Projet
 
-**Dernière mise à jour:** 2026-01-16 20:10
+**Dernière mise à jour:** 2026-01-16 23:46
 
 ---
 
@@ -34,6 +34,9 @@
 | Exports messages | OK | CSV/PDF/HTML |
 | Historique digests | OK | Pagination |
 | i18n FR/EN | OK | UI + libellés |
+| Collections avancées | OK | Stats + exports + digests |
+| Alertes collections | OK | Notifications in-app |
+| Partage collections | OK | viewer/editor/admin |
 
 ### 1.2 Limitations connues
 
@@ -61,7 +64,7 @@ Stabiliser la plateforme M1, renforcer la qualité (monitoring, observabilité, 
 |-------|--------|-------|
 | Tests d'intégration API | **À faire** | Scénarios auth + search + exports |
 | Monitoring & alerting | **À faire** | Logs structurés + métriques |
-| Jobs planifiés | **À faire** | Digests auto + housekeeping |
+| Jobs planifiés | **Fait** | Digests auto + alertes + housekeeping |
 | Observabilité LLM | **À faire** | Coûts + latences |
 
 ### 2.3 Critères d'acceptation
@@ -97,6 +100,8 @@ PostgreSQL → JWT               → LLM        → Vectorielle → Digests v2
 | Déduplication sémantique | P0 | ✅ **Fait (code)** | Qdrant |
 | Daily Digests v2 | P1 | ✅ **Fait** | Traduction LLM |
 | Collections de canaux | P1 | ✅ **Fait** | PostgreSQL |
+| Alertes par collection | P1 | ✅ **Fait** | Collections |
+| Partage collections | P2 | ✅ **Fait** | Collections |
 | Dashboard KPIs | P1 | ✅ **Fait** | PostgreSQL |
 | Export CSV/PDF/HTML | P2 | ✅ **Fait** | - |
 | Audit logs RGPD | P2 | 🟡 **Partiel** | PostgreSQL |

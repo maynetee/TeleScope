@@ -1,13 +1,27 @@
-import { useParams } from 'react-router-dom'
-import { useQuery } from '@tanstack/react-query'
-
-import { collectionsApi } from '@/lib/api/client'
-import { Card, CardContent } from '@/components/ui/card'
+import { useMemo, useState } from 'react'
+import { useNavigate, useParams } from 'react-router-dom'
+import { useInfiniteQuery, useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
+
+import { collectionsApi, messagesApi, summariesApi } from '@/lib/api/client'
+import { Card, CardContent } from '@/components/ui/card'
+import { Button } from '@/components/ui/button'
+import { MessageFeed } from '@/components/messages/message-feed'
+import { CollectionStats } from '@/components/collections/collection-stats'
+import { CollectionManager } from '@/components/collections/collection-manager'
+import { CollectionExportDialog } from '@/components/collections/collection-export-dialog'
+import { CollectionAlerts } from '@/components/collections/collection-alerts'
+import { CollectionShares } from '@/components/collections/collection-shares'
+import { DigestCard } from '@/components/digests/digest-card'
+import { Timestamp } from '@/components/common/timestamp'
 
 export function CollectionDetailPage() {
   const { id } = useParams()
   const { t } = useTranslation()
+  const navigate = useNavigate()
+  const queryClient = useQueryClient()
+  const [exportOpen, setExportOpen] = useState(false)
+  const [editing, setEditing] = useState(false)
 
   const collectionQuery = useQuery({
     queryKey: ['collections', id],
@@ -15,10 +29,86 @@ export function CollectionDetailPage() {
     enabled: Boolean(id),
   })
 
+  const statsQuery = useQuery({
+    queryKey: ['collections', id, 'stats'],
+    queryFn: async () => (await collectionsApi.stats(id as string)).data,
+    enabled: Boolean(id),
+  })
+
+  const messagesQuery = useInfiniteQuery({
+    queryKey: ['collection-messages', id],
+    initialPageParam: 0,
+    queryFn: async ({ pageParam }) => {
+      const channelIds = collectionQuery.data?.channel_ids ?? []
+      return (
+        await messagesApi.list({
+          limit: 20,
+          offset: pageParam,
+          channel_ids: channelIds.length ? channelIds : undefined,
+        })
+      ).data
+    },
+    getNextPageParam: (lastPage) => {
+      const nextOffset = lastPage.page * lastPage.page_size
+      return nextOffset < lastPage.total ? nextOffset : undefined
+    },
+    enabled: Boolean(collectionQuery.data?.channel_ids?.length),
+  })
+
+  const digestQuery = useInfiniteQuery({
+    queryKey: ['collection-digests', id],
+    initialPageParam: 0,
+    queryFn: async ({ pageParam }) =>
+      (await collectionsApi.digests(id as string, { limit: 5, offset: pageParam })).data,
+    getNextPageParam: (lastPage) => {
+      const nextOffset = lastPage.page * lastPage.page_size
+      return nextOffset < lastPage.total ? nextOffset : undefined
+    },
+    enabled: Boolean(id),
+  })
+
+  const updateCollection = useMutation({
+    mutationFn: (payload: Parameters<typeof collectionsApi.update>[1]) =>
+      collectionsApi.update(id as string, payload),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['collections'] })
+      queryClient.invalidateQueries({ queryKey: ['collections', id] })
+      queryClient.invalidateQueries({ queryKey: ['collections', id, 'stats'] })
+    },
+  })
+
+  const deleteCollection = useMutation({
+    mutationFn: () => collectionsApi.delete(id as string),
+    onSuccess: () => navigate('/collections'),
+  })
+
+  const generateDigest = useMutation({
+    mutationFn: () => collectionsApi.generateDigest(id as string),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['collection-digests', id] }),
+  })
+
+  const messages = useMemo(
+    () => messagesQuery.data?.pages.flatMap((page) => page.messages) ?? [],
+    [messagesQuery.data],
+  )
+  const digests = useMemo(
+    () => digestQuery.data?.pages.flatMap((page) => page.summaries) ?? [],
+    [digestQuery.data],
+  )
+
+  const downloadBlob = (data: Blob, filename: string) => {
+    const url = window.URL.createObjectURL(data)
+    const link = document.createElement('a')
+    link.href = url
+    link.download = filename
+    link.click()
+    window.URL.revokeObjectURL(url)
+  }
+
   return (
     <div className="flex flex-col gap-6">
       <Card>
-        <CardContent className="py-6">
+        <CardContent className="flex flex-wrap items-center justify-between gap-4 py-6">
           <div className="flex flex-col gap-2">
             <p className="text-sm text-foreground/60">{t('collections.title')}</p>
             <h2 className="text-2xl font-semibold">
@@ -27,9 +117,117 @@ export function CollectionDetailPage() {
             <p className="text-sm text-foreground/60">
               {collectionQuery.data?.description ?? t('collections.emptyDescriptionLabel')}
             </p>
+            {collectionQuery.data?.created_at ? (
+              <p className="text-xs text-foreground/50">
+                {t('collections.createdAt')} <Timestamp value={collectionQuery.data.created_at} />
+              </p>
+            ) : null}
+          </div>
+          <div className="flex flex-wrap gap-2">
+            <Button variant="outline" onClick={() => setEditing(true)}>
+              {t('collections.edit')}
+            </Button>
+            <Button variant="outline" onClick={() => setExportOpen(true)}>
+              {t('collections.export')}
+            </Button>
+            <Button variant="outline" onClick={() => generateDigest.mutate()}>
+              {generateDigest.isPending ? t('digests.generating') : t('collections.generateDigest')}
+            </Button>
+            <Button variant="outline" onClick={() => deleteCollection.mutate()}>
+              {t('collections.delete')}
+            </Button>
           </div>
         </CardContent>
       </Card>
+
+      <CollectionStats stats={statsQuery.data} isLoading={statsQuery.isLoading} />
+
+      <Card>
+        <CardContent className="py-6">
+          <h3 className="text-lg font-semibold">{t('collections.feedTitle')}</h3>
+          <div className="mt-4">
+            <MessageFeed
+              messages={messages}
+              isLoading={messagesQuery.isLoading}
+              isFetchingNextPage={messagesQuery.isFetchingNextPage}
+              onEndReached={() => {
+                if (messagesQuery.hasNextPage) {
+                  messagesQuery.fetchNextPage()
+                }
+              }}
+            />
+          </div>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardContent className="py-6">
+          <div className="flex items-center justify-between gap-3">
+            <h3 className="text-lg font-semibold">{t('collections.digestTitle')}</h3>
+            <Button variant="outline" onClick={() => generateDigest.mutate()}>
+              {generateDigest.isPending ? t('digests.generating') : t('digests.generate')}
+            </Button>
+          </div>
+          <div className="mt-4 flex flex-col gap-3">
+            {digests.length ? (
+              digests.map((digest) => (
+                <DigestCard
+                  key={digest.id}
+                  digest={digest}
+                  onOpen={(digestId) => navigate(`/digests/${digestId}`)}
+                  onExportPdf={async (digestId) => {
+                    const response = await summariesApi.exportPdf(digestId)
+                    downloadBlob(response.data, `digest-${digestId}.pdf`)
+                  }}
+                  onExportHtml={async (digestId) => {
+                    const response = await summariesApi.exportHtml(digestId)
+                    downloadBlob(new Blob([response.data], { type: 'text/html' }), `digest-${digestId}.html`)
+                  }}
+                />
+              ))
+            ) : (
+              <p className="text-sm text-foreground/60">{t('collections.noDigests')}</p>
+            )}
+            {digestQuery.hasNextPage ? (
+              <Button
+                variant="outline"
+                onClick={() => digestQuery.fetchNextPage()}
+                disabled={digestQuery.isFetchingNextPage}
+              >
+                {digestQuery.isFetchingNextPage ? t('messages.loadingMore') : t('digests.loadMore')}
+              </Button>
+            ) : null}
+          </div>
+        </CardContent>
+      </Card>
+
+      {id ? <CollectionAlerts collectionId={id} /> : null}
+      {id ? <CollectionShares collectionId={id} /> : null}
+
+      <CollectionManager
+        collection={editing ? collectionQuery.data : null}
+        hideTrigger
+        onSubmit={async (payload) => {
+          await updateCollection.mutateAsync(payload)
+          setEditing(false)
+        }}
+      />
+      <CollectionExportDialog
+        open={exportOpen}
+        onOpenChange={setExportOpen}
+        onExport={async (params) => {
+          const response = await collectionsApi.exportMessages(id as string, params)
+          if (params.format === 'pdf') {
+            downloadBlob(response.data, `collection-${id}.pdf`)
+            return
+          }
+          if (params.format === 'html') {
+            downloadBlob(new Blob([response.data], { type: 'text/html' }), `collection-${id}.html`)
+            return
+          }
+          downloadBlob(new Blob([response.data], { type: 'text/csv' }), `collection-${id}.csv`)
+        }}
+      />
     </div>
   )
 }

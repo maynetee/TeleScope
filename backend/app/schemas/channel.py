@@ -20,6 +20,7 @@ class ChannelResponse(ChannelBase):
     detected_language: Optional[str] = None
     subscriber_count: int
     is_active: bool = True
+    tags: Optional[list[str]] = None
     fetch_config: Optional[Dict[str, Any]] = None
     created_at: datetime
     updated_at: Optional[datetime] = None

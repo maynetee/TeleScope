@@ -7,6 +7,7 @@ from uuid import UUID
 class SummaryResponse(BaseModel):
     id: UUID
     user_id: Optional[UUID] = None
+    collection_id: Optional[UUID] = None
     digest_type: str = "daily"
     title: Optional[str] = None
     content: str

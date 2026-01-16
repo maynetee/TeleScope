@@ -5,6 +5,7 @@ from uuid import UUID
 
 from app.database import get_db, AsyncSessionLocal
 from app.models.channel import Channel
+from app.models.collection import Collection
 from app.models.user import User
 from app.schemas.channel import ChannelCreate, ChannelResponse
 from app.services.telegram_collector import TelegramCollector
@@ -63,6 +64,30 @@ async def add_channel(
             )
 
             db.add(new_channel)
+            collections_result = await db.execute(
+                select(Collection).where(Collection.user_id == user.id)
+            )
+            collections = collections_result.scalars().all()
+            channel_lang = channel_info.get('lang_code')
+            search_text = f\"{new_channel.title} {new_channel.description or ''}\".lower()
+            for collection in collections:
+                if collection.is_global:
+                    continue
+                if collection.is_default:
+                    collection.channels.append(new_channel)
+                    continue
+                if collection.auto_assign_languages and channel_lang:
+                    if channel_lang in (collection.auto_assign_languages or []):
+                        collection.channels.append(new_channel)
+                        continue
+                if collection.auto_assign_keywords:
+                    if any(keyword.lower() in search_text for keyword in collection.auto_assign_keywords or []):
+                        collection.channels.append(new_channel)
+                        continue
+                if collection.auto_assign_tags and new_channel.tags:
+                    if any(tag in (collection.auto_assign_tags or []) for tag in new_channel.tags):
+                        collection.channels.append(new_channel)
+
             record_audit_event(
                 db,
                 user_id=user.id,

@@ -2,8 +2,8 @@
 ## Renseignement Opérationnel pour Telegram
 
 **Version:** 1.0
-**Date:** 2026-01-16 20:10
-**Statut:** Phase 2 - Stabilisation M1
+**Date:** 2026-01-16 23:46
+**Statut:** Phase 2 - Stabilisation M1 (Collections/Alertes livrées)
 
 ---
 
@@ -34,6 +34,9 @@ TeleScope résout le problème fondamental des professionnels de l'OSINT : **la 
 - Exports messages CSV/PDF/HTML + historique digests paginé
 - Trust indicators (duplicata, score, source primaire) + entités (NER)
 - i18n FR/EN, PWA, tests E2E Playwright
+- Collections avancées (multi-assignation, stats, exports, digests)
+- Alertes par collection + notifications in-app
+- Partage de collections (viewer/editor/admin)
 
 ### Décisions Stratégiques (validées)
 | Décision | Choix | Justification |

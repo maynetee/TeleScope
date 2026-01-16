@@ -7,33 +7,50 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { messagesApi } from '@/lib/api/client'
+import { collectionsApi, messagesApi } from '@/lib/api/client'
 
 export function SearchPage() {
   const [query, setQuery] = useState('')
   const [activeTab, setActiveTab] = useState('semantic')
+  const [collectionIds, setCollectionIds] = useState<string[]>([])
   const { t } = useTranslation()
 
+  const collectionsQuery = useQuery({
+    queryKey: ['collections'],
+    queryFn: async () => (await collectionsApi.list()).data,
+  })
+
+  const searchChannelIds = useMemo(() => {
+    if (!collectionIds.length) return undefined
+    const ids =
+      collectionsQuery.data
+        ?.filter((collection) => collectionIds.includes(collection.id))
+        .flatMap((collection) => collection.channel_ids) ?? []
+    return ids.length ? Array.from(new Set(ids)) : undefined
+  }, [collectionsQuery.data, collectionIds])
+
   const semanticQuery = useQuery({
-    queryKey: ['search', 'semantic', query],
+    queryKey: ['search', 'semantic', query, searchChannelIds],
     queryFn: async () =>
       (
         await messagesApi.searchSemantic({
           q: query,
           top_k: 20,
+          channel_ids: searchChannelIds,
         })
       ).data,
     enabled: query.length > 2,
   })
 
   const keywordQuery = useQuery({
-    queryKey: ['search', 'keyword', query],
+    queryKey: ['search', 'keyword', query, searchChannelIds],
     queryFn: async () =>
       (
         await messagesApi.search({
           q: query,
           limit: 20,
           offset: 0,
+          channel_ids: searchChannelIds,
         })
       ).data,
     enabled: query.length > 2,
@@ -69,6 +86,34 @@ export function SearchPage() {
           aria-label={t('search.placeholder')}
         />
         <Button variant="secondary">{t('search.launch')}</Button>
+      </div>
+      <div className="flex flex-wrap gap-2">
+        <Button
+          variant={!collectionIds.length ? 'default' : 'outline'}
+          size="sm"
+          onClick={() => setCollectionIds([])}
+        >
+          {t('collections.allCollections')}
+        </Button>
+        {(collectionsQuery.data ?? []).map((collection) => {
+          const active = collectionIds.includes(collection.id)
+          return (
+            <Button
+              key={collection.id}
+              variant={active ? 'secondary' : 'outline'}
+              size="sm"
+              onClick={() =>
+                setCollectionIds(
+                  active
+                    ? collectionIds.filter((id) => id !== collection.id)
+                    : [...collectionIds, collection.id],
+                )
+              }
+            >
+              {collection.name}
+            </Button>
+          )
+        })}
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab}>

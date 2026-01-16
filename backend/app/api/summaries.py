@@ -4,6 +4,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, desc, func
 from io import BytesIO
 from fpdf import FPDF
+from typing import Optional
 
 from app.database import get_db
 from app.models.summary import Summary
@@ -60,6 +61,7 @@ async def get_daily_summary(
 @router.get("", response_model=SummaryListResponse)
 async def list_summaries(
     digest_type: str = "daily",
+    collection_id: Optional[str] = None,
     limit: int = 10,
     offset: int = 0,
     user: User = Depends(current_active_user),
@@ -81,6 +83,9 @@ async def list_summaries(
         .where(Summary.user_id == user.id)
         .where(Summary.digest_type == digest_type)
     )
+    if collection_id:
+        query = query.where(Summary.collection_id == collection_id)
+        count_query = count_query.where(Summary.collection_id == collection_id)
     total_result = await db.execute(count_query)
     total = total_result.scalar() or 0
 

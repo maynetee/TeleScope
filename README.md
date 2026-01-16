@@ -8,13 +8,17 @@ TeleScope is a Telegram-first OSINT platform for collection, translation, dedupl
 - LLM translation (OpenAI GPT-4o-mini) with fallback
 - Vector deduplication (Qdrant) + semantic search hooks
 - Daily digests v2 (HTML + PDF export + key entities)
-- Collections to group channels and filter digests
+- Collections to group channels, filter digests, and export scoped messages
+- Collection stats + dashboard scope selector
+- Collection alerts + in-app notifications
+- Collection sharing (viewer/editor/admin)
 - KPI dashboard (messages, channels, duplicates) with CSV export
 - Frontend refonte (React 18 + Vite + Tailwind + Zustand + React Query)
 - Command palette (⌘K) + global shortcuts
 - Virtualized message feed + lazy-loaded routes
 - Full-text + semantic search with similar-message view
 - Message exports CSV/PDF/HTML + digests history pagination
+- Collection-aware search filters
 - Trust indicators (duplicate score, primary source)
 - i18n FR/EN
 - PWA (offline install ready)

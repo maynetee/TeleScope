@@ -6,6 +6,7 @@ import { useTranslation } from 'react-i18next'
 import { Button } from '@/components/ui/button'
 import { ThemeToggle } from '@/components/layout/theme-toggle'
 import { useUiStore } from '@/stores/ui-store'
+import { NotificationCenter } from '@/components/layout/notification-center'
 
 export function Header() {
   const location = useLocation()
@@ -56,6 +57,7 @@ export function Header() {
           <Command className="h-4 w-4" />
           {t('header.commandPalette')}
         </Button>
+        <NotificationCenter />
         <ThemeToggle />
       </div>
     </header>

@@ -1,4 +1,4 @@
-from sqlalchemy import Column, DateTime, String, Text, ForeignKey, Table
+from sqlalchemy import Column, DateTime, String, Text, ForeignKey, Table, Boolean, JSON
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import relationship
 from datetime import datetime, timezone
@@ -21,7 +21,16 @@ class Collection(Base):
     user_id = Column(UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True)
     name = Column(String(200), nullable=False)
     description = Column(Text, nullable=True)
+    color = Column(String(7), nullable=True)
+    icon = Column(String(50), nullable=True)
+    is_default = Column(Boolean, default=False, nullable=False)
+    is_global = Column(Boolean, default=False, nullable=False)
+    parent_id = Column(UUID(as_uuid=True), ForeignKey("collections.id", ondelete="SET NULL"), nullable=True)
+    auto_assign_languages = Column(JSON, default=list, nullable=True)
+    auto_assign_keywords = Column(JSON, default=list, nullable=True)
+    auto_assign_tags = Column(JSON, default=list, nullable=True)
     created_at = Column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc))
     updated_at = Column(DateTime(timezone=True), onupdate=lambda: datetime.now(timezone.utc))
 
     channels = relationship("Channel", secondary=collection_channels, back_populates="collections")
+    parent = relationship("Collection", remote_side=[id], backref="children")

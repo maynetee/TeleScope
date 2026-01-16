@@ -181,6 +181,7 @@ async def generate_daily_summary(
     db: AsyncSession = None,
     user_id: Optional[UUID] = None,
     filters: Optional[Dict[str, Any]] = None,
+    collection_id: Optional[UUID] = None,
 ) -> Summary:
     """
     Generate daily summary for the last 24 hours.
@@ -270,6 +271,7 @@ async def generate_daily_summary(
             period_start=start_time,
             period_end=end_time,
             user_id=user_id,
+            collection_id=collection_id,
             filters=filters or {"collections": [], "languages": [], "keywords": []},
         )
 

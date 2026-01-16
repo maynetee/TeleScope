@@ -10,6 +10,14 @@ et ce projet adhère au [Semantic Versioning](https://semver.org/lang/fr/).
 ## [Non publié]
 
 ### Ajouté
+#### Collections & alertes
+- Gestion avancée des collections (globales, parent/enfant, auto-assignation)
+- Stats par collection + overview + comparaison backend
+- Digests par collection + filtre dans la page digests
+- Exports par collection (CSV/HTML/PDF) avec métadonnées
+- Alertes par collection + historique + notifications in-app
+- Partage de collections (viewer/editor/admin)
+- Job scheduler alertes (APScheduler)
 #### Frontend refonte
 - Nouvelle architecture frontend (app/providers/router, features, stores, styles)
 - AppShell (sidebar + header), command palette (cmdk) et raccourcis clavier
@@ -80,6 +88,9 @@ et ce projet adhère au [Semantic Versioning](https://semver.org/lang/fr/).
 - Variables d'environnement OpenAI/Qdrant ajoutées
 
 ### Modifié
+- Dashboard scope collection + KPIs adaptés
+- Page Collections enrichie (overview + actions)
+- Page Channel avec assignation rapide aux collections
 - `app/services/vector_store.py` - intégration Qdrant + import lazy des embeddings
 - `app/schemas/*` - passage à `ConfigDict` pour Pydantic v2
 - `requirements.txt` - ajout de `qdrant-client`, `redis`

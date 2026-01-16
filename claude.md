@@ -14,7 +14,13 @@ Transformer TeleScope en **outil de renseignement opérationnel** destiné aux j
 | LLM | GPT-4o-mini |
 | Cache | Redis |
 | Frontend | React 18 |
-| Tâches de fond | ARQ ou Celery |
+| Tâches de fond | APScheduler (actuel) / ARQ ou Celery (cible) |
+
+## Implémentation actuelle (résumé)
+
+- Collections enrichies (stats, export, digests, partage)
+- Alertes par collection + notifications in-app
+- Jobs planifiés via APScheduler (collecte, digests, alertes, purge audit)
 
 ## Frontend (refonte)
 
@@ -24,12 +30,13 @@ Transformer TeleScope en **outil de renseignement opérationnel** destiné aux j
 - Recherche full-text + sémantique + vue de similarité
 - Trust indicators (duplicata, score, source primaire)
 - Exports messages (CSV/PDF/HTML) + historique digests paginé
+- Collections avancées (multi-assignation, exports, digests, alertes, partage)
 - i18n FR/EN + micro-interactions
 - PWA + tests E2E (Playwright)
 
 ## Règles de Dépôt
 
-- **Ne jamais pousser directement sur `main`** - Toute modification doit passer par une Pull Request
+- **PR recommandée** - Pull Request par défaut, push direct accepté pour hotfix/ops
 - **Branches par fonctionnalité** - Utiliser le format `feature/<nom-fonctionnalité>` ou `fix/<nom-bug>`
 - **Tâches de fond** - Utiliser ARQ (recommandé pour async) ou Celery pour tout traitement long ou planifié
 - **Code review obligatoire** - Au moins une approbation avant merge

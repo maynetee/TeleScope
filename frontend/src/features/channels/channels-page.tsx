@@ -4,7 +4,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { AddChannelDialog } from '@/components/channels/add-channel-dialog'
 import { ChannelList } from '@/components/channels/channel-list'
 import { EmptyState } from '@/components/common/empty-state'
-import { channelsApi, messagesApi } from '@/lib/api/client'
+import { channelsApi, messagesApi, collectionsApi } from '@/lib/api/client'
 import { useTranslation } from 'react-i18next'
 
 export function ChannelsPage() {
@@ -27,6 +27,10 @@ export function ChannelsPage() {
   const channelsQuery = useQuery({
     queryKey: ['channels'],
     queryFn: async () => (await channelsApi.list()).data,
+  })
+  const collectionsQuery = useQuery({
+    queryKey: ['collections'],
+    queryFn: async () => (await collectionsApi.list()).data,
   })
 
   const addChannel = useMutation({
@@ -69,6 +73,7 @@ export function ChannelsPage() {
       ) : (
         <ChannelList
           channels={channels}
+          collections={collectionsQuery.data ?? []}
           onView={(id) => navigate(`/channels/${id}`)}
           onFetch={(id, days) => fetchHistorical.mutate({ id, days })}
           onDelete={(id) => deleteChannel.mutate(id)}
