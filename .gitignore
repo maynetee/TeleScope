@@ -1,0 +1,72 @@
+# ===========================================
+# TeleScope - Fichiers ignorés par Git
+# ===========================================
+
+# ----- Environnement & Secrets -----
+.env
+.env.local
+.env.*.local
+*.session
+*.session-journal
+
+# ----- Python -----
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+.venv/
+venv/
+ENV/
+env/
+.eggs/
+*.egg-info/
+*.egg
+dist/
+build/
+.pytest_cache/
+.coverage
+htmlcov/
+.mypy_cache/
+.ruff_cache/
+
+# ----- Node.js / Frontend -----
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+dist/
+.vite/
+
+# ----- IDE & Éditeurs -----
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# ----- Logs -----
+logs/
+*.log
+
+# ----- Données locales -----
+data/*.db
+data/*.sqlite
+*.backup
+
+# ----- Telegram sessions (CRITIQUE - NE JAMAIS COMMITER) -----
+*.session
+backend/data/*.session
+backend/data/*.session-journal
+
+# ----- MCP local config avec secrets -----
+# Contient des credentials PostgreSQL - NE PAS COMMITER
+.mcp.json
+
+# ----- Divers -----
+.cache/
+tmp/
+temp/
+*.bak

@@ -1,0 +1,31 @@
+# Core Framework
+fastapi>=0.115.0
+uvicorn[standard]>=0.32.0
+pydantic>=2.10.0
+pydantic-settings>=2.6.0
+python-dotenv>=1.0.0
+python-multipart>=0.0.17
+
+# Database - PostgreSQL
+sqlalchemy[asyncio]>=2.0.36
+asyncpg>=0.29.0
+alembic>=1.13.0
+greenlet>=3.0.0
+aiosqlite>=0.20.0  # Kept for local development fallback
+
+# Authentication - JWT
+fastapi-users[sqlalchemy]>=13.0.0
+python-jose[cryptography]>=3.3.0
+passlib[bcrypt]>=1.7.4
+
+# Telegram
+telethon>=1.37.0
+tenacity>=8.2.0  # For retry with exponential backoff
+
+# HTTP & Scheduling
+httpx>=0.28.0
+apscheduler>=3.10.4
+
+# Translation & NLP
+deep-translator>=1.11.4
+langdetect>=1.0.9
