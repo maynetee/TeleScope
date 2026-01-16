@@ -20,7 +20,11 @@ class User(SQLAlchemyBaseUserTableUUID, Base):
 
     # Profile information
     full_name = Column(String(255), nullable=True)
-    role = Column(SQLEnum(UserRole), default=UserRole.VIEWER, nullable=False)
+    role = Column(
+        SQLEnum(UserRole, values_callable=lambda x: [e.value for e in x]),
+        default=UserRole.VIEWER,
+        nullable=False
+    )
 
     # RGPD compliance fields
     consent_given_at = Column(DateTime(timezone=True), nullable=True)

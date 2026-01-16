@@ -575,25 +575,25 @@ async def export_collection_messages(
             "<head><meta charset='utf-8'><title>TeleScope - Collection Export</title>",
             "<style>body{font-family:Arial,sans-serif;background:#f8fafc;color:#0f172a;padding:24px;}h1{font-size:20px;}article{margin:16px 0;padding:12px;border:1px solid #e2e8f0;border-radius:12px;background:#fff;}small{color:#64748b;}</style>",
             "</head><body>",
-            f\"<h1>Collection: {escape(collection.name)}</h1>\",
+            f"<h1>Collection: {escape(collection.name)}</h1>",
         ]
         if collection.description:
-            html_lines.append(f\"<p>{escape(collection.description)}</p>\")
+            html_lines.append(f"<p>{escape(collection.description)}</p>")
         for message, channel in rows:
             html_lines.append("<article>")
             html_lines.append(
-                f\"<small>{escape(channel.title)} · {escape(channel.username)} · {message.published_at}</small>\"
+                f"<small>{escape(channel.title)} · {escape(channel.username)} · {message.published_at}</small>"
             )
-            html_lines.append(f\"<p>{escape(message.translated_text or message.original_text or '')}</p>\")
+            html_lines.append(f"<p>{escape(message.translated_text or message.original_text or '')}</p>")
             if message.translated_text and message.original_text:
-                html_lines.append(f\"<p><small>Original: {escape(message.original_text)}</small></p>\")
+                html_lines.append(f"<p><small>Original: {escape(message.original_text)}</small></p>")
             html_lines.append("</article>")
         html_lines.append("</body></html>")
-        html = \"\\n\".join(html_lines)
+        html = "\n".join(html_lines)
         return StreamingResponse(
             iter([html]),
             media_type="text/html",
-            headers={"Content-Disposition": f\"attachment; filename=telescope-collection-{collection_id}.html\"},
+            headers={"Content-Disposition": f"attachment; filename=telescope-collection-{collection_id}.html"},
         )
 
     if format == "pdf":
@@ -608,13 +608,13 @@ async def export_collection_messages(
         pdf.cell(0, 10, f"TeleScope - {collection.name}", ln=True)
         pdf.set_font("Helvetica", size=11)
         for message, channel in rows:
-            header = f\"{channel.title} (@{channel.username}) - {message.published_at}\"
+            header = f"{channel.title} (@{channel.username}) - {message.published_at}"
             pdf.multi_cell(0, 8, header)
             pdf.set_font("Helvetica", size=10)
-            pdf.multi_cell(0, 6, message.translated_text or message.original_text or \"\")
+            pdf.multi_cell(0, 6, message.translated_text or message.original_text or "")
             if message.translated_text and message.original_text:
                 pdf.set_font("Helvetica", size=9)
-                pdf.multi_cell(0, 6, f\"Original: {message.original_text}\")
+                pdf.multi_cell(0, 6, f"Original: {message.original_text}")
             pdf.ln(2)
             pdf.set_font("Helvetica", size=11)
 
@@ -624,7 +624,7 @@ async def export_collection_messages(
             BytesIO(pdf_bytes),
             media_type="application/pdf",
             headers={
-                "Content-Disposition": f\"attachment; filename=telescope-collection-{collection_id}.pdf\",
+                "Content-Disposition": f"attachment; filename=telescope-collection-{collection_id}.pdf",
             },
         )
 

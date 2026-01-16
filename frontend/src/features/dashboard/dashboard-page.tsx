@@ -49,6 +49,49 @@ export function DashboardPage() {
     enabled: selectedCollection !== 'all',
   })
 
+  const collectionOptions = useMemo(
+    () => collectionsQuery.data ?? [],
+    [collectionsQuery.data],
+  )
+  const selectedCollectionData = useMemo(
+    () => collectionOptions.find((collection) => collection.id === selectedCollection) ?? null,
+    [collectionOptions, selectedCollection],
+  )
+  const selectedChannelIds = selectedCollectionData?.channel_ids ?? []
+
+  const digestQuery = useQuery({
+    queryKey: ['dashboard', 'digest', selectedCollection],
+    queryFn: async () => {
+      try {
+        if (selectedCollection === 'all') {
+          const response = await summariesApi.getDaily()
+          return response.data
+        }
+        const response = await collectionsApi.digests(selectedCollection, { limit: 1, offset: 0 })
+        return response.data.summaries[0] ?? null
+      } catch {
+        return null
+      }
+    },
+    enabled: selectedCollection === 'all'
+      ? (channelsQuery.data?.length ?? 0) > 0
+      : selectedChannelIds.length > 0,
+    retry: false,
+  })
+
+  const trustQuery = useQuery({
+    queryKey: ['dashboard', 'trust', selectedCollection, selectedChannelIds],
+    queryFn: async () => {
+      const params = selectedCollection === 'all' ? undefined : { channel_ids: selectedChannelIds }
+      const response = await statsApi.trust(params)
+      return response.data
+    },
+    enabled: selectedCollection === 'all'
+      ? (channelsQuery.data?.length ?? 0) > 0
+      : selectedChannelIds.length > 0,
+  })
+
+  // All hooks must be called before any early returns
   const channels = channelsQuery.data ?? []
   const overview = overviewQuery.data
   const collectionStats = collectionStatsQuery.data
@@ -90,48 +133,6 @@ export function DashboardPage() {
   const topChannels = selectedCollection === 'all'
     ? messagesByChannelQuery.data ?? []
     : (collectionStats?.top_channels ?? [])
-
-  const collectionOptions = useMemo(
-    () => collectionsQuery.data ?? [],
-    [collectionsQuery.data],
-  )
-  const selectedCollectionData = useMemo(
-    () => collectionOptions.find((collection) => collection.id === selectedCollection) ?? null,
-    [collectionOptions, selectedCollection],
-  )
-  const selectedChannelIds = selectedCollectionData?.channel_ids ?? []
-
-  const digestQuery = useQuery({
-    queryKey: ['dashboard', 'digest', selectedCollection],
-    queryFn: async () => {
-      try {
-        if (selectedCollection === 'all') {
-          const response = await summariesApi.getDaily()
-          return response.data
-        }
-        const response = await collectionsApi.digests(selectedCollection, { limit: 1, offset: 0 })
-        return response.data.summaries[0] ?? null
-      } catch (error) {
-        return null
-      }
-    },
-    enabled: selectedCollection === 'all'
-      ? (channelsQuery.data?.length ?? 0) > 0
-      : selectedChannelIds.length > 0,
-    retry: false,
-  })
-
-  const trustQuery = useQuery({
-    queryKey: ['dashboard', 'trust', selectedCollection, selectedChannelIds],
-    queryFn: async () => {
-      const params = selectedCollection === 'all' ? undefined : { channel_ids: selectedChannelIds }
-      const response = await statsApi.trust(params)
-      return response.data
-    },
-    enabled: selectedCollection === 'all'
-      ? (channelsQuery.data?.length ?? 0) > 0
-      : selectedChannelIds.length > 0,
-  })
 
   const digest = digestQuery.data
   const digestLines = (digest?.content ?? '')

@@ -10,9 +10,11 @@ import {
   Sparkles,
 } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
+import { useQuery } from '@tanstack/react-query'
 
 import { cn } from '@/lib/cn'
 import { useUiStore } from '@/stores/ui-store'
+import { statsApi } from '@/lib/api/client'
 
 const navItems = [
   { key: 'dashboard', to: '/', icon: LayoutDashboard },
@@ -28,8 +30,17 @@ const navItems = [
 export function Sidebar() {
   const collapsed = useUiStore((state) => state.sidebarCollapsed)
   const { t } = useTranslation()
-  const statusMessages = 2847
-  const statusDuplicates = 42
+
+  const { data: stats } = useQuery({
+    queryKey: ['stats', 'overview'],
+    queryFn: async () => (await statsApi.overview()).data,
+    staleTime: 60000, // 1 minute
+  })
+
+  const statusMessages = stats?.messages_last_24h ?? 0
+  const statusDuplicates = stats?.duplicates_last_24h && stats?.messages_last_24h
+    ? Math.round((stats.duplicates_last_24h / stats.messages_last_24h) * 100)
+    : 0
 
   return (
     <aside

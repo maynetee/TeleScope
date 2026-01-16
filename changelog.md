@@ -10,6 +10,27 @@ et ce projet adhère au [Semantic Versioning](https://semver.org/lang/fr/).
 ## [Non publié]
 
 ### Ajouté
+#### Authentification Frontend (2026-01-17)
+- Implémentation complète du flux d'authentification JWT frontend
+- Login/Register avec appel réel à l'API backend (`/api/auth/login`, `/api/auth/register`)
+- Stockage persistant des tokens JWT (zustand + localStorage)
+- Intercepteur axios pour injection automatique du token Bearer
+- Refresh automatique des tokens expirés
+- AuthGuard avec gestion de l'hydratation du store
+- Affichage des erreurs dans les formulaires (login, register, add-channel)
+- Error Boundary global pour capturer les erreurs React
+- Traductions i18n FR/EN pour les nouveaux messages d'auth
+
+### Corrigé
+#### Backend (2026-01-17)
+- Correction syntaxe f-strings échappées dans `channels.py` et `collections.py`
+- Correction enum UserRole : utilisation des valeurs lowercase (`viewer` au lieu de `VIEWER`)
+
+#### Frontend (2026-01-17)
+- Correction violation règles React Hooks dans `dashboard-page.tsx` (early return avant tous les hooks)
+- Suppression des valeurs hardcodées dans la sidebar (stats réelles via API)
+- Gestion robuste de l'hydratation du store zustand
+
 #### Collections & alertes
 - Gestion avancée des collections (globales, parent/enfant, auto-assignation)
 - Stats par collection + overview + comparaison backend

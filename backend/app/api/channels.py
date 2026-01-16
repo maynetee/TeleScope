@@ -69,7 +69,7 @@ async def add_channel(
             )
             collections = collections_result.scalars().all()
             channel_lang = channel_info.get('lang_code')
-            search_text = f\"{new_channel.title} {new_channel.description or ''}\".lower()
+            search_text = f"{new_channel.title} {new_channel.description or ''}".lower()
             for collection in collections:
                 if collection.is_global:
                     continue

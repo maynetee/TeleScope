@@ -3,6 +3,7 @@ import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { useTranslation } from 'react-i18next'
+import { AxiosError } from 'axios'
 
 import { Button } from '@/components/ui/button'
 import {
@@ -32,6 +33,7 @@ export function AddChannelDialog({ onSubmit, open: controlledOpen, onOpenChange,
   type FormValues = z.infer<typeof schema>
 
   const [internalOpen, setInternalOpen] = useState(false)
+  const [apiError, setApiError] = useState<string | null>(null)
 
   // Support both controlled and uncontrolled modes
   const isControlled = controlledOpen !== undefined
@@ -45,13 +47,27 @@ export function AddChannelDialog({ onSubmit, open: controlledOpen, onOpenChange,
   } = useForm<FormValues>({ resolver: zodResolver(schema) })
 
   const submitHandler = async (values: FormValues) => {
-    await onSubmit(values.username)
-    reset()
-    setOpen(false)
+    setApiError(null)
+    try {
+      await onSubmit(values.username)
+      reset()
+      setOpen(false)
+    } catch (err) {
+      const axiosError = err as AxiosError<{ detail: string }>
+      setApiError(axiosError.response?.data?.detail || t('channels.addError'))
+    }
+  }
+
+  const handleOpenChange = (newOpen: boolean) => {
+    if (!newOpen) {
+      setApiError(null)
+      reset()
+    }
+    setOpen(newOpen)
   }
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
+    <Dialog open={open} onOpenChange={handleOpenChange}>
       {showTrigger && (
         <DialogTrigger asChild>
           <Button>{t('channels.add')}</Button>
@@ -63,6 +79,9 @@ export function AddChannelDialog({ onSubmit, open: controlledOpen, onOpenChange,
           <DialogDescription>{t('channels.addDescription')}</DialogDescription>
         </DialogHeader>
         <form className="mt-4 flex flex-col gap-4" onSubmit={handleSubmit(submitHandler)}>
+          {apiError && (
+            <div className="rounded-md bg-danger/10 p-3 text-sm text-danger">{apiError}</div>
+          )}
           <div className="flex flex-col gap-2">
             <Label htmlFor="username">{t('channels.channelLabel')}</Label>
             <Input id="username" placeholder={t('channels.channelPlaceholder')} {...register('username')} />

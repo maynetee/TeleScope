@@ -1,6 +1,6 @@
 # TeleScope - État du Projet
 
-**Dernière mise à jour:** 2026-01-16 23:46
+**Dernière mise à jour:** 2026-01-17 00:35
 
 ---
 
@@ -43,7 +43,7 @@
 | Limitation | Impact | Priorité | Statut |
 |------------|--------|----------|--------|
 | SQLite single-writer | Pas de scaling | P0 | ✅ Résolu (PostgreSQL) |
-| Pas d'authentification | Données publiques | P0 | ✅ Résolu (JWT) |
+| Pas d'authentification | Données publiques | P0 | ✅ Résolu (JWT backend + frontend) |
 | Pas de gestion FloodWait | Ban Telegram | P0 | ✅ Résolu (backoff) |
 | ~~Déduplication O(n²)~~ | ~~Lent à 10K+ messages~~ | P0 | ✅ Résolu (Qdrant) |
 | ~~Google Translate générique~~ | ~~Traductions imprécises~~ | P1 | ✅ Résolu (GPT-4o-mini) |

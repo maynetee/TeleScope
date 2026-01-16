@@ -6,6 +6,7 @@ import { useTranslation } from 'react-i18next'
 
 import i18n from '@/app/i18n'
 import { useTheme } from '@/hooks/use-theme'
+import { ErrorBoundary } from '@/components/common/error-boundary'
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -38,15 +39,17 @@ interface AppProvidersProps {
 export function AppProviders({ children }: AppProvidersProps) {
   return (
     <React.StrictMode>
-      <QueryClientProvider client={queryClient}>
-        <I18nextProvider i18n={i18n}>
-          <BrowserRouter>
-            <ThemeBridge />
-            <LanguageBridge />
-            {children}
-          </BrowserRouter>
-        </I18nextProvider>
-      </QueryClientProvider>
+      <ErrorBoundary>
+        <QueryClientProvider client={queryClient}>
+          <I18nextProvider i18n={i18n}>
+            <BrowserRouter>
+              <ThemeBridge />
+              <LanguageBridge />
+              {children}
+            </BrowserRouter>
+          </I18nextProvider>
+        </QueryClientProvider>
+      </ErrorBoundary>
     </React.StrictMode>
   )
 }
